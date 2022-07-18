@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>spinnaker_sdk_camera_driver</name>
+  <name>flir_camera_driver</name>
   <version>1.1.1</version>
   <description>Point Grey (FLIR) Spinnaker based camera driver (Blackfly S etc.)</description>
 

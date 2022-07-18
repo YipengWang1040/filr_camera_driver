@@ -1,0 +1,22 @@
+%YAML 1.2
+
+# camera settings
+## float
+exposure_target_value: 50.0
+
+## in micro seconds, int
+exposure_time_min: 100
+exposure_time_max: 19000
+
+## in DB, float
+exposure_gain_min: 0.0
+exposure_gain_max: 15.0
+
+## int
+fps: 30
+
+# other settings
+
+ros_topic: "/blackfly/cam0/image_raw"
+additional_topic: "/blackfly/additional"
+skip: 0

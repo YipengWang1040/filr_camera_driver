@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(spinnaker_sdk_camera_driver)
+project(flir_camera_driver)
 
-add_compile_options(-std=c++17)
+add_compile_options(-std=c++17 -Wall -Wextra -Wpedantic)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_BUILD_TYPE Release)
 
 ###
 # camera Acquisition specific 
@@ -19,7 +20,8 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   sensor_msgs
 )
-#find_package(PCL REQUIRED)
+
+
 
 ###
 # Acquisition specific
@@ -28,15 +30,6 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Spinnaker REQUIRED)
 message("spinnaker lib :   " ${Spinnaker_LIBRARIES})
 find_package(OpenCV REQUIRED)
-# use LibUnwind only for x86_64 or x86_32 architecture
-# do not use LibUnwind for arm architecture
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR x86_32)
-  message("uses LibUnwind for x86_64 or x86_32 architecture")
-  find_package(LibUnwind REQUIRED)
-endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR x86_32)
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 OR arm)
-  message("Detected ARM architecture")
-endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 OR arm)
 
 find_package(Boost REQUIRED)
 if(Boost_FOUND)
@@ -46,14 +39,40 @@ elseif(NOT Boost_FOUND)
   message("Boost not found!")
 endif()
 
-# configure a header file to pass some of the CMake settings
-# to the source code
-configure_file (
-  "${PROJECT_SOURCE_DIR}/include/spinnaker_sdk_camera_driver/spinnaker_configure.h.in"
-  "${PROJECT_SOURCE_DIR}/include/spinnaker_sdk_camera_driver/spinnaker_configure.h"
+
+add_message_files(
+    FILES
+    ImageAddition.msg
 )
 
-add_executable (driver src/driver.cpp)
-add_dependencies(driver ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
-target_link_libraries (driver ${LIBS} ${catkin_LIBRARIES})
+
+generate_messages(
+    DEPENDENCIES
+    std_msgs
+    sensor_msgs
+)
+
+catkin_package(
+    INCLUDE_DIRS include
+    CATKIN_DEPENDS roscpp std_msgs message_runtime
+    DEPENDS OpenCV
+)
+
+
+include_directories(
+    include
+    ${PROJECT_INCLUDE_DIR}
+    ${catkin_INCLUDE_DIRS}
+    SYSTEM ${Spinnaker_INCLUDE_DIRS}
+    SYSTEM ${OpenCV_INCLUDE_DIRS}
+    SYSTEM ${Boost_INCLUDE_DIR}
+)
+
+link_directories( ${Spinnaker_LIBRARIES} )
+
+set (LIBS ${Spinnaker_LIBRARIES} ${OpenCV_LIBS} ${Boost_GENERAL})
+
+add_executable (flir_camera_driver src/driver.cpp src/config.cpp src/device.cpp)
+add_dependencies(flir_camera_driver ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
+target_link_libraries (flir_camera_driver ${LIBS} ${catkin_LIBRARIES})
 
