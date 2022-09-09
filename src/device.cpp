@@ -52,11 +52,14 @@ void Device::clear(){
     }
 }
 
-bool Device::grab(cv::Mat &image, size_t &time_stamp, double& exposure_time, double& gain){
+bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, double& exposure_time, double& gain){
     if(!is_valid())
         return false;
 
     try {
+        image_raw=cv::Mat();
+        image_color=cv::Mat();
+
         INodeMap& ptr=camera->GetNodeMap();
         ImagePtr grab_image = camera->GetNextImage(500); // note that timeout is in milliseconds
         if(grab_image->IsIncomplete()){
@@ -73,17 +76,17 @@ bool Device::grab(cv::Mat &image, size_t &time_stamp, double& exposure_time, dou
             ROS_INFO("%f,%f",exposure_time,gain);
         }
 
-        if(!use_raw_image){
+        if(use_rgb_image){
             ImagePtr converted_image=grab_image->Convert(PixelFormat_BGR8,HQ_LINEAR); // but I can't find any documentation about that "ImageProcessor"
-            image=cv::Mat(int(converted_image->GetHeight()),int(converted_image->GetWidth()),CV_8UC3);
-            memcpy(image.data,converted_image->GetData(),size_t(image.cols*image.rows*3));
+            image_color=cv::Mat(int(converted_image->GetHeight()),int(converted_image->GetWidth()),CV_8UC3);
+            memcpy(image_color.data,converted_image->GetData(),size_t(image_color.cols*image_color.rows*3));
         }
-        else{
+        if(use_raw_image){
             uchar* raw_data = reinterpret_cast<uchar*>(grab_image->GetData());
             int width=int(grab_image->GetWidth());
             int height=int(int(grab_image->GetHeight()));
-            image=cv::Mat(height,width,CV_8UC3);
-            uchar* dst_data=image.data;
+            image_raw=cv::Mat(height,width,CV_8UC3);
+            uchar* dst_data=image_raw.data;
 
             // only copy valid channel from RGGB to BGR
             // branch elimination trick: i%2+j%2-> 0:r, 1: g, 2: b
@@ -255,7 +258,8 @@ bool Device::configure(const configure::config &config){
             }
         }
         else if(config.field=="mode"){
-            use_raw_image=config.val_64i;
+            use_raw_image=config.val_64i & 0b10;
+            use_rgb_image=config.val_64i & 0b01;
         }
     } catch (Spinnaker::Exception& e) {
         ROS_FATAL("Exception: %s",e.what());

@@ -12,13 +12,14 @@
 class Device{
 
 public:
-    Device(Spinnaker::CameraPtr _camera):use_raw_image(false){
+    Device(Spinnaker::CameraPtr _camera):use_raw_image(false), use_rgb_image(true){
         camera=_camera;
     }
     Device(const Device&)=delete;
     Device(Device&& another){
         camera=another.camera;
         use_raw_image=another.use_raw_image;
+        use_rgb_image=another.use_rgb_image;
         another.camera=nullptr;
     }
     ~Device();
@@ -36,7 +37,7 @@ public:
 
     // time_stamp is in nanoseconds
     // time_stamp represents the running time after camera was powered on
-    bool grab(cv::Mat& image, size_t& time_stamp, double& exposure_time, double& gain);
+    bool grab(cv::Mat& image_raw, cv::Mat& image_color, size_t& time_stamp, double& exposure_time, double& gain);
 
     // default parameters
     bool default_initialization();
@@ -45,6 +46,7 @@ private:
     Spinnaker::CameraPtr camera;
 
     bool use_raw_image;
+    bool use_rgb_image;
 
 };
 

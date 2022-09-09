@@ -17,7 +17,8 @@
 using namespace std;
 
 static int skip=0;
-static string topic="/blackfly/cam0/image_raw";
+static string topic_rgb="/blackfly/cam0/image_color";
+static string topic_raw="/blackfly/cam0/image_raw";
 static string topic_addition="/blackfly/additional";
 static int64_t delta=-1;
 
@@ -39,7 +40,8 @@ void apply_configs(Device& camera, configure::config_reader& reader){
     }
 
     skip=reader.get("skip",0);
-    topic=reader.get("ros_topic",string("/blackfly/cam0/image_raw"));
+    topic_raw=reader.get("ros_topic_raw",string("/blackfly/cam0/image_raw"));
+    topic_rgb=reader.get("ros_topic_color",string("/blackfly/cam0/image_color"));
     topic_addition=reader.get("additional_topic",string("/blackfly/additional"));
 }
 
@@ -47,8 +49,9 @@ void apply_configs(Device& camera, configure::config_reader& reader){
 int main(int argc, char* argv[]){
     ros::init(argc, argv, "flir_driver");
     ros::NodeHandle nh("~");
-    ros::Publisher pub_image=nh.advertise<sensor_msgs::Image>(topic,1000);
-    ros::Publisher pub_addition=nh.advertise<flir_camera_driver::ImageAddition>(topic_addition,1000);
+    ros::Publisher pub_image_raw=nh.advertise<sensor_msgs::Image>(topic_raw,10);
+    ros::Publisher pub_image_rgb=nh.advertise<sensor_msgs::Image>(topic_rgb,10);
+    ros::Publisher pub_addition=nh.advertise<flir_camera_driver::ImageAddition>(topic_addition,10);
 
     signal(SIGINT,sigint_handler);
 
@@ -68,10 +71,11 @@ int main(int argc, char* argv[]){
     ROS_INFO("starting");
     int counter=0;
     while(run){
-        cv::Mat image;
+        cv::Mat image_rgb;
+        cv::Mat image_raw;
         size_t time_stamp;
         double exposure_time, gain;
-        if(camera.grab(image,time_stamp,exposure_time,gain)){
+        if(camera.grab(image_raw,image_rgb,time_stamp,exposure_time,gain)){
             // roughly synchronize the device timestamp (from 0 when connected)
             // with the unix time
             if(delta<0)
@@ -85,19 +89,34 @@ int main(int argc, char* argv[]){
             counter=0;
 
             int64_t timestamp=delta+int64_t(time_stamp);
-            cv_bridge::CvImage cv_image;
-            cv_image.header.stamp.fromNSec(time_stamp);
-            cv_image.header.frame_id="image0";
-            cv_image.encoding="bgr8";
-            cv_image.image=image;
 
-            flir_camera_driver::ImageAddition addition;
-            addition.header=cv_image.header;
-            addition.exposure=exposure_time;
-            addition.gain=gain;
+            if(!image_rgb.empty()){
+                cv_bridge::CvImage cv_image;
+                cv_image.header.stamp.fromNSec(timestamp);
+                cv_image.header.frame_id="image0";
+                cv_image.encoding="bgr8";
+                cv_image.image=image_rgb;
+                pub_image_rgb.publish(cv_image.toImageMsg());
+            }
 
-            pub_image.publish(cv_image.toImageMsg());
-            pub_addition.publish(addition);
+            if(!image_raw.empty()){
+                cv_bridge::CvImage cv_image;
+                cv_image.header.stamp.fromNSec(timestamp);
+                cv_image.header.frame_id="image0";
+                cv_image.encoding="bgr8";
+                cv_image.image=image_raw;
+                pub_image_raw.publish(cv_image.toImageMsg());
+            }
+
+            if(!image_raw.empty() || !image_rgb.empty()){
+                flir_camera_driver::ImageAddition addition;
+                addition.header.stamp.fromNSec(timestamp);
+                addition.header.frame_id="image0";
+                addition.exposure=exposure_time;
+                addition.gain=gain;
+                pub_addition.publish(addition);
+            }
+
             usleep(10000);
         }
         else{
