@@ -1,6 +1,10 @@
 %YAML 1.2
 
 # camera settings
+
+## int
+mode: 1    # 0:BGR888, 1: BayerRG8
+
 ## float
 exposure_target_value: 50.0
 

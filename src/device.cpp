@@ -73,12 +73,29 @@ bool Device::grab(cv::Mat &image, size_t &time_stamp, double& exposure_time, dou
             ROS_INFO("%f,%f",exposure_time,gain);
         }
 
+        if(!use_raw_image){
+            ImagePtr converted_image=grab_image->Convert(PixelFormat_BGR8,HQ_LINEAR); // but I can't find any documentation about that "ImageProcessor"
+            image=cv::Mat(int(converted_image->GetHeight()),int(converted_image->GetWidth()),CV_8UC3);
+            memcpy(image.data,converted_image->GetData(),size_t(image.cols*image.rows*3));
+        }
+        else{
+            uchar* raw_data = reinterpret_cast<uchar*>(grab_image->GetData());
+            int width=int(grab_image->GetWidth());
+            int height=int(int(grab_image->GetHeight()));
+            image=cv::Mat(height,width,CV_8UC3);
+            uchar* dst_data=image.data;
 
-        ImagePtr converted_image=grab_image->Convert(PixelFormat_BGR8,HQ_LINEAR); // but I can't find any documentation about that "ImageProcessor"
-        image=cv::Mat(int(converted_image->GetHeight()),int(converted_image->GetWidth()),CV_8UC3);
-        memcpy(image.data,converted_image->GetData(),size_t(image.cols*image.rows*3));
+            // only copy valid channel from RGGB to BGR
+            // branch elimination trick: i%2+j%2-> 0:r, 1: g, 2: b
+            for(int i=0;i<height;++i){
+                for(int j=0;j<width;++j){
+                    int offset=2-i%2-j%2;
+                    dst_data[width*i*3 + j*3 + offset]=raw_data[width*i+j];
+                }
+            }
+        }
+
         grab_image->Release();
-
 
     } catch (Spinnaker::Exception& e) {
         ROS_FATAL("Error: %s",e.what());
@@ -236,6 +253,9 @@ bool Device::configure(const configure::config &config){
                 int64_t val=ptr->GetValue();
                 ROS_INFO("Field '%s' was set to %ld","AcquisitionFrameRate",val);
             }
+        }
+        else if(config.field=="mode"){
+            use_raw_image=config.val_64i;
         }
     } catch (Spinnaker::Exception& e) {
         ROS_FATAL("Exception: %s",e.what());

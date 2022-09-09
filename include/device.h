@@ -12,12 +12,13 @@
 class Device{
 
 public:
-    Device(Spinnaker::CameraPtr _camera){
+    Device(Spinnaker::CameraPtr _camera):use_raw_image(false){
         camera=_camera;
     }
     Device(const Device&)=delete;
     Device(Device&& another){
         camera=another.camera;
+        use_raw_image=another.use_raw_image;
         another.camera=nullptr;
     }
     ~Device();
@@ -40,9 +41,10 @@ public:
     // default parameters
     bool default_initialization();
 
-
 private:
     Spinnaker::CameraPtr camera;
+
+    bool use_raw_image;
 
 };
 

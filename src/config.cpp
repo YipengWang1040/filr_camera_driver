@@ -21,4 +21,7 @@ void configure::config_reader::read_config(const std::string &file_name){
     if(!fs["fps"].empty()){
         camera_configs.push_back(config{"fps",{.val_64i=int(fs["fps"])}});
     }
+    if(!fs["mode"].empty()){
+        camera_configs.push_back(config{"mode",{.val_64i=int(fs["mode"])}});
+    }
 }
