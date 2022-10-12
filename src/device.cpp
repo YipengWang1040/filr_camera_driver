@@ -77,7 +77,7 @@ bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, 
         }
 
         if(use_rgb_image){
-            ImagePtr converted_image=grab_image->Convert(PixelFormat_BGR8,HQ_LINEAR); // but I can't find any documentation about that "ImageProcessor"
+            ImagePtr converted_image=image_processor.Convert(grab_image,PixelFormat_BGR8); 
             image_color=cv::Mat(int(converted_image->GetHeight()),int(converted_image->GetWidth()),CV_8UC3);
             memcpy(image_color.data,converted_image->GetData(),size_t(image_color.cols*image_color.rows*3));
         }
@@ -121,12 +121,12 @@ bool Device::default_initialization(){
         return false;
 
     std::list<configure::config> configs={
-        {"exposure_target_value",{.val_64f=50.0}},
-        {"exposure_time_min",{.val_64i=100}},
-        {"exposure_time_max",{.val_64i=15000}},
-        {"exposure_gain_min",{.val_64f=0.0}},
-        {"exposure_gain_max",{.val_64f=15.0}},
-        {"fps",{.val_64i=30}},
+        {"exposure_target_value",50.0},
+        {"exposure_time_min",100l},
+        {"exposure_time_max",15000l},
+        {"exposure_gain_min",0.0},
+        {"exposure_gain_max",5.0},
+        {"fps",30l},
     };
     try {
         INodeMap& node_map=camera->GetNodeMap();

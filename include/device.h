@@ -14,6 +14,7 @@ class Device{
 public:
     Device(Spinnaker::CameraPtr _camera):use_raw_image(false), use_rgb_image(true){
         camera=_camera;
+        image_processor.SetColorProcessing(Spinnaker::ColorProcessingAlgorithm::HQ_LINEAR);
     }
     Device(const Device&)=delete;
     Device(Device&& another){
@@ -44,6 +45,7 @@ public:
 
 private:
     Spinnaker::CameraPtr camera;
+    Spinnaker::ImageProcessor image_processor;
 
     bool use_raw_image;
     bool use_rgb_image;

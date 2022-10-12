@@ -10,6 +10,10 @@
 namespace configure {
 
 struct config{
+    config(const std::string& _field, int64_t val):
+        field(_field),val_64i(val){}
+    config(const std::string& _field, double val):
+        field(_field),val_64f(val){}
     std::string field;
     union{
         int64_t val_64i;
