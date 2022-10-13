@@ -21,7 +21,7 @@ fps: 10
 
 # other settings
 
-ros_topic_color: "/blackfly/cam0/image_color"
-ros_topic_raw: "/blackfly/cam0/image_raw"    # raw image is still in BGR888 format but each pixel has only one non-zero channel
+ros_topic_color: "/blackfly/cam%/image_color"
+ros_topic_raw: "/blackfly/cam%/image_raw"    # raw image is still in BGR888 format but each pixel has only one non-zero channel
 additional_topic: "/blackfly/additional"
 skip: 0

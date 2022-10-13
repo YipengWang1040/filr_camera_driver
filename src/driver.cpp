@@ -11,6 +11,7 @@
 
 #include "device.h"
 #include "config.h"
+#include "utils.hpp"
 
 //#include "../../devel/include/flir_camera_driver/ImageAddition.h"   // incase where IDE cannot correctly find the generated message
 #include "flir_camera_driver/ImageAddition.h"
@@ -21,7 +22,6 @@ static int skip=0;
 static string topic_rgb="/blackfly/cam%/image_color";
 static string topic_raw="/blackfly/cam%/image_raw";
 static string topic_addition="/blackfly/additional";
-static int64_t delta=-1;
 
 static bool run=true;
 
@@ -48,6 +48,7 @@ void apply_configs(std::list<Device>& cameras, configure::config_reader& reader)
 
 void run_cam(Device& camera,ros::Publisher& pub_raw, ros::Publisher& pub_rgb, ros::Publisher& pub_addition){
     int counter=skip;
+    thread_local int64_t delta=-1;
     while(run){
         cv::Mat image_rgb;
         cv::Mat image_raw;
@@ -125,16 +126,23 @@ int main(int argc, char* argv[]){
 
     ROS_INFO("starting");
 
-    // initialize publishers
+    // initialize publishers and threads handles
     ros::Publisher pub_addition=nh.advertise<flir_camera_driver::ImageAddition>(topic_addition,10);
     std::vector<ros::Publisher> pubs_image_raw;
     std::vector<ros::Publisher> pubs_image_rgb;
     std::vector<std::thread> working_threads;
     size_t idx=0;
     for(auto&& camera:camera_list){
-        pubs_image_raw.push_back(nh.advertise<sensor_msgs::Image>(topic_rgb,10));
+        pubs_image_raw.push_back(nh.advertise<sensor_msgs::Image>(strfmt(topic_raw.c_str(),idx),10));
+        pubs_image_rgb.push_back(nh.advertise<sensor_msgs::Image>(strfmt(topic_rgb.c_str(),idx),10));
+        working_threads.push_back(thread{&run_cam,std::ref(camera),std::ref(pubs_image_raw.back()),std::ref(pubs_image_rgb.back()),std::ref(pub_addition)});
+        idx+=1;
     }
-    
+
+    // wait for threads to complete
+    for(auto&& thread:working_threads){
+        thread.join();
+    }
 
     for(auto&& camera:camera_list){
         camera.clear();
