@@ -87,14 +87,14 @@ void run_cam(Device& camera,ros::Publisher& pub_raw, ros::Publisher& pub_rgb, ro
                 pub_raw.publish(cv_image.toImageMsg());
             }
 
-            if(!image_raw.empty() || !image_rgb.empty()){
-                flir_camera_driver::ImageAddition addition;
-                addition.header.stamp.fromNSec(timestamp);
-                addition.header.frame_id="image0";
-                addition.exposure=exposure_time;
-                addition.gain=gain;
-                pub_addition.publish(addition);
-            }
+            // if(!image_raw.empty() || !image_rgb.empty()){
+            //     flir_camera_driver::ImageAddition addition;
+            //     addition.header.stamp.fromNSec(timestamp);
+            //     addition.header.frame_id="image0";
+            //     addition.exposure=exposure_time;
+            //     addition.gain=gain;
+            //     pub_addition.publish(addition);
+            // }
 
             usleep(10000);
         }
@@ -128,14 +128,15 @@ int main(int argc, char* argv[]){
 
     // initialize publishers and threads handles
     ros::Publisher pub_addition=nh.advertise<flir_camera_driver::ImageAddition>(topic_addition,10);
-    std::vector<ros::Publisher> pubs_image_raw;
-    std::vector<ros::Publisher> pubs_image_rgb;
-    std::vector<std::thread> working_threads;
+    std::vector<ros::Publisher> pubs_image_raw(camera_list.size());
+    std::vector<ros::Publisher> pubs_image_rgb(camera_list.size());
+    std::vector<std::thread> working_threads(camera_list.size());
     size_t idx=0;
     for(auto&& camera:camera_list){
-        pubs_image_raw.push_back(nh.advertise<sensor_msgs::Image>(strfmt(topic_raw.c_str(),idx),10));
-        pubs_image_rgb.push_back(nh.advertise<sensor_msgs::Image>(strfmt(topic_rgb.c_str(),idx),10));
-        working_threads.push_back(thread{&run_cam,std::ref(camera),std::ref(pubs_image_raw.back()),std::ref(pubs_image_rgb.back()),std::ref(pub_addition)});
+        pubs_image_raw[idx]=(nh.advertise<sensor_msgs::Image>(strfmt(topic_raw.c_str(),idx),10));
+        cout<<strfmt(topic_raw.c_str(),idx)<<endl;
+        pubs_image_rgb[idx]=(nh.advertise<sensor_msgs::Image>(strfmt(topic_rgb.c_str(),idx),10));
+        working_threads[idx]=(thread{&run_cam,std::ref(camera),std::ref(pubs_image_raw[idx]),std::ref(pubs_image_rgb[idx]),std::ref(pub_addition)});
         idx+=1;
     }
 

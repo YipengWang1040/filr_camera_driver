@@ -1,0 +1,12 @@
+<launch>
+
+  <arg name="config_path" 
+    default="$(find flir_camera_driver)/config/default.yaml"/>
+
+
+
+  <node pkg="flir_camera_driver" launch-prefix="gdb -ex run --args" type="flir_camera_driver" name="flir_camera_driver" output="screen">
+    <param name="config_file" type="string" value="$(arg config_path)" />
+  </node>
+
+</launch>
