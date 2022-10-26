@@ -87,14 +87,14 @@ void run_cam(Device& camera,ros::Publisher& pub_raw, ros::Publisher& pub_rgb, ro
                 pub_raw.publish(cv_image.toImageMsg());
             }
 
-            // if(!image_raw.empty() || !image_rgb.empty()){
-            //     flir_camera_driver::ImageAddition addition;
-            //     addition.header.stamp.fromNSec(timestamp);
-            //     addition.header.frame_id="image0";
-            //     addition.exposure=exposure_time;
-            //     addition.gain=gain;
-            //     pub_addition.publish(addition);
-            // }
+            if(!image_raw.empty() || !image_rgb.empty()){
+                flir_camera_driver::ImageAddition addition;
+                addition.header.stamp.fromNSec(timestamp);
+                addition.header.frame_id="image0";
+                addition.exposure=exposure_time;
+                addition.gain=gain;
+                pub_addition.publish(addition);
+            }
 
             usleep(10000);
         }
