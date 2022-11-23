@@ -12,7 +12,7 @@
 class Device{
 
 public:
-    Device(Spinnaker::CameraPtr _camera):use_raw_image(false), use_rgb_image(true){
+    Device(Spinnaker::CameraPtr _camera):use_raw_image(false), use_rgb_image(true), bayer2rgb(true){
         camera=_camera;
         image_processor.SetColorProcessing(Spinnaker::ColorProcessingAlgorithm::HQ_LINEAR);
     }
@@ -49,6 +49,8 @@ private:
 
     bool use_raw_image;
     bool use_rgb_image;
+    
+    bool bayer2rgb;
 
 };
 

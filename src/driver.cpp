@@ -82,7 +82,12 @@ void run_cam(Device& camera,ros::Publisher& pub_raw, ros::Publisher& pub_rgb, ro
                 cv_bridge::CvImage cv_image;
                 cv_image.header.stamp.fromNSec(timestamp);
                 cv_image.header.frame_id="image0";
-                cv_image.encoding="bgr8";
+                if(image_raw.type()==CV_8UC3){
+                    cv_image.encoding="bgr8";
+                }
+                else{
+                    cv_image.encoding="mono8";
+                }
                 cv_image.image=image_raw;
                 pub_raw.publish(cv_image.toImageMsg());
             }

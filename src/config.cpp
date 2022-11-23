@@ -24,4 +24,8 @@ void configure::config_reader::read_config(const std::string &file_name){
     if(!fs["mode"].empty()){
         camera_configs.push_back(config{"mode",int64_t(int(fs["mode"]))});
     }
+    if(!fs["bayer_as_rgb"].empty()){
+        camera_configs.push_back(config{"bayer_as_rgb",int64_t(int(fs["bayer_as_rgb"]))});
+    }
 }
+

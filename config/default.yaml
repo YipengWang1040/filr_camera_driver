@@ -4,6 +4,7 @@
 
 ## int
 mode: 3    # 0:none, 1:BGR888, 2: BayerRG8, 3: both
+bayer_as_rgb: 0
 
 ## float
 exposure_target_value: 50.0
@@ -24,4 +25,4 @@ fps: 10
 ros_topic_color: "/blackfly/cam%/image_color"
 ros_topic_raw: "/blackfly/cam%/image_raw"    # raw image is still in BGR888 format but each pixel has only one non-zero channel
 additional_topic: "/blackfly/additional"
-skip: 0
+skip: 2

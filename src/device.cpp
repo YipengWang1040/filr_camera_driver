@@ -85,16 +85,23 @@ bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, 
             uchar* raw_data = reinterpret_cast<uchar*>(grab_image->GetData());
             int width=int(grab_image->GetWidth());
             int height=int(int(grab_image->GetHeight()));
-            image_raw=cv::Mat(height,width,CV_8UC3);
-            uchar* dst_data=image_raw.data;
+            if(bayer2rgb){
+                image_raw=cv::Mat(height,width,CV_8UC3);
+                uchar* dst_data=image_raw.data;
 
-            // only copy valid channel from RGGB to BGR
-            // branch elimination trick: i%2+j%2-> 0:r, 1: g, 2: b
-            for(int i=0;i<height;++i){
-                for(int j=0;j<width;++j){
-                    int offset=2-i%2-j%2;
-                    dst_data[width*i*3 + j*3 + offset]=raw_data[width*i+j];
+                // only copy valid channel from RGGB to BGR
+                // branch elimination trick: i%2+j%2-> 0:r, 1: g, 2: b
+                for(int i=0;i<height;++i){
+                    for(int j=0;j<width;++j){
+                        int offset=2-i%2-j%2;
+                        dst_data[width*i*3 + j*3 + offset]=raw_data[width*i+j];
+                    }
                 }
+            }
+            else{
+                image_raw=cv::Mat(height,width,CV_8UC1);
+                uchar* dst_data=image_raw.data;
+                memcpy(dst_data, raw_data, width*height);
             }
         }
 
@@ -260,6 +267,9 @@ bool Device::configure(const configure::config &config){
         else if(config.field=="mode"){
             use_raw_image=config.val_64i & 0b10;
             use_rgb_image=config.val_64i & 0b01;
+        }
+        else if(config.field=="bayer_as_rgb"){
+            bayer2rgb=config.val_64i;
         }
     } catch (Spinnaker::Exception& e) {
         ROS_FATAL("Exception: %s",e.what());
