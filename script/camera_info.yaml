@@ -1,0 +1,8 @@
+topic: "/blackfly/cam0/camera_info"
+image_width: 1440
+image_height: 1080
+distortion_model: equidistant  # plumb_bob or equidistant
+camera_matrix:
+  data: [517.9280837833172,0,730.8411939852243,0, 518.1171694591795, 560.7529688838626,0,0,1]
+distortion_coefficients:
+  data: [0.008952886400579767, -0.0015613798151604633, 5.9442356175577894e-05, -0.00028617855510667997]
