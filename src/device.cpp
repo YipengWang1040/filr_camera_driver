@@ -55,6 +55,7 @@ void Device::clear(){
 }
 
 bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, double& exposure_time, double& gain){
+    thread_local int64_t delta=-1;
     if(!is_valid())
         return false;
 
@@ -69,6 +70,12 @@ bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, 
             return false;
         }
         time_stamp=grab_image->GetTimeStamp();
+        if(delta<0){
+            if(delta<0)
+                delta=time(nullptr)*1000000000-int64_t(time_stamp);
+        }
+        time_stamp=delta+time_stamp;
+
         // read gain and exposure time for this specific frame
         {
             CFloatPtr eptr=ptr.GetNode("ExposureTime");

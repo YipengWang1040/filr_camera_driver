@@ -48,17 +48,12 @@ void apply_configs(std::list<Device>& cameras, configure::config_reader& reader)
 
 void run_cam(Device& camera,ros::Publisher& pub_raw, ros::Publisher& pub_rgb, ros::Publisher& pub_addition){
     int counter=skip;
-    thread_local int64_t delta=-1;
     while(run){
         cv::Mat image_rgb;
         cv::Mat image_raw;
         size_t time_stamp;
         double exposure_time, gain;
         if(camera.grab(image_raw,image_rgb,time_stamp,exposure_time,gain)){
-            // roughly synchronize the device timestamp (from 0 when connected)
-            // with the unix time
-            if(delta<0)
-                delta=time(nullptr)*1000000000-int64_t(time_stamp);
 
             // skip publishing if 'skip' was set
             // this could be used in calibration where lower framerate is sufficient
@@ -67,11 +62,10 @@ void run_cam(Device& camera,ros::Publisher& pub_raw, ros::Publisher& pub_rgb, ro
                 continue;
             counter=0;
 
-            int64_t timestamp=delta+int64_t(time_stamp);
 
             if(!image_rgb.empty()){
                 cv_bridge::CvImage cv_image;
-                cv_image.header.stamp.fromNSec(timestamp);
+                cv_image.header.stamp.fromNSec(time_stamp);
                 cv_image.header.frame_id="image0";
                 cv_image.encoding="bgr8";
                 cv_image.image=image_rgb;
@@ -80,7 +74,7 @@ void run_cam(Device& camera,ros::Publisher& pub_raw, ros::Publisher& pub_rgb, ro
 
             if(!image_raw.empty()){
                 cv_bridge::CvImage cv_image;
-                cv_image.header.stamp.fromNSec(timestamp);
+                cv_image.header.stamp.fromNSec(time_stamp);
                 cv_image.header.frame_id="image0";
                 if(image_raw.type()==CV_8UC3){
                     cv_image.encoding="bgr8";
@@ -94,7 +88,7 @@ void run_cam(Device& camera,ros::Publisher& pub_raw, ros::Publisher& pub_rgb, ro
 
             if(!image_raw.empty() || !image_rgb.empty()){
                 flir_camera_driver::ImageAddition addition;
-                addition.header.stamp.fromNSec(timestamp);
+                addition.header.stamp.fromNSec(time_stamp);
                 addition.header.frame_id="image0";
                 addition.exposure=exposure_time;
                 addition.gain=gain;
