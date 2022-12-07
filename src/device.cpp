@@ -70,9 +70,9 @@ bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, 
             return false;
         }
         time_stamp=grab_image->GetTimeStamp();
+        // roughly sychronize the timestamp form the camera to the host.
         if(delta<0){
-            if(delta<0)
-                delta=time(nullptr)*1000000000-int64_t(time_stamp);
+            delta=time(nullptr)*1000000000-int64_t(time_stamp);
         }
         time_stamp=delta+time_stamp;
 
