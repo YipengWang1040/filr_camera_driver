@@ -300,7 +300,37 @@ bool Device::configure(const configure::config &config){
     return true;
 }
 
+#include <fstream>
+bool Device::photometric_calibration(const std::string& file_name){
+    std::ofstream out(file_name);
+    INodeMap& node_map=camera->GetNodeMap();
 
+    // disable auto exposure
+    {
+        CBooleanPtr ptr=node_map.GetNode("ExposureAuto");
+        CHECK_WRITABLE(ptr);
+        ptr->SetValue(false);
+    }
+    // disable auto gain
+    {
+        CBooleanPtr ptr=node_map.GetNode("GainAuto");
+        CHECK_WRITABLE(ptr);
+        ptr->SetValue(false);
+    }
+    // set gain to 0
+    {
+        CFloatPtr ptr=node_map.GetNode("Gain");
+        CHECK_WRITABLE(ptr);
+        ptr->SetValue(0);
+    }
+
+
+
+
+
+
+    return true;
+}
 
 
 

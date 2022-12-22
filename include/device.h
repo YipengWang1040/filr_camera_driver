@@ -43,6 +43,8 @@ public:
     // default parameters
     bool default_initialization();
 
+    bool photometric_calibration(const std::string&);
+
 private:
     Spinnaker::CameraPtr camera;
     Spinnaker::ImageProcessor image_processor;
