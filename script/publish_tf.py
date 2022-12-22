@@ -6,7 +6,6 @@ import tf
 import tf2_ros
 import geometry_msgs.msg
 import yaml
-import numpy as np
 
 if __name__ == '__main__':
     import argparse
@@ -29,20 +28,16 @@ if __name__ == '__main__':
     static_transformStamped.header.frame_id = "velo_link"
     static_transformStamped.child_frame_id = "camera_color"
 
+    static_transformStamped.transform.translation.x = float(tf_data['x'])
+    static_transformStamped.transform.translation.y = float(tf_data['y'])
+    static_transformStamped.transform.translation.z = float(tf_data['z'])
 
-    rotation = tf.transformations.euler_matrix(
-                   float(tf_data['roll']),float(tf_data['pitch']),float(tf_data['yaw'])).T
-    translation = -rotation @ np.array([float(tf_data['x']),float(tf_data['y']),float(tf_data['z']),1])
-    
-    quat = tf.transformations.quaternion_from_matrix(rotation)
-    
+    quat = tf.transformations.quaternion_from_euler(
+                   float(tf_data['roll']),float(tf_data['pitch']),float(tf_data['yaw']))
     static_transformStamped.transform.rotation.x = quat[0]
     static_transformStamped.transform.rotation.y = quat[1]
     static_transformStamped.transform.rotation.z = quat[2]
     static_transformStamped.transform.rotation.w = quat[3]
-    
-    static_transformStamped.transform.translation.x = translation[0]
-    static_transformStamped.transform.translation.y = translation[1]
-    static_transformStamped.transform.translation.z = translation[2]
+
     broadcaster.sendTransform(static_transformStamped)
     rospy.spin()
