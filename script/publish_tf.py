@@ -25,8 +25,8 @@ if __name__ == '__main__':
     static_transformStamped = geometry_msgs.msg.TransformStamped()
 
     static_transformStamped.header.stamp = rospy.Time.now()
-    static_transformStamped.header.frame_id = "velo_link"
-    static_transformStamped.child_frame_id = "camera_color"
+    static_transformStamped.header.frame_id = "velodyne"
+    static_transformStamped.child_frame_id = "image0"
 
     static_transformStamped.transform.translation.x = float(tf_data['x'])
     static_transformStamped.transform.translation.y = float(tf_data['y'])

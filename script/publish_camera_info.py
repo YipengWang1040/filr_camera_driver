@@ -1,10 +1,10 @@
 """
 Modifined version of https://gist.github.com/rossbar/ebb282c3b73c41c1404123de6cea4771
-Publish only K and D since the acfr lidar-camera calibration package only use these parameters
 """
 import rospy
 import yaml
 import os
+import numpy as np
 from sensor_msgs.msg import CameraInfo
 
 def yaml_to_CameraInfo(yaml_fname):
@@ -32,6 +32,10 @@ def yaml_to_CameraInfo(yaml_fname):
     camera_info_msg.height = calib_data["image_height"]
     camera_info_msg.K = calib_data["camera_matrix"]["data"]
     camera_info_msg.D = calib_data["distortion_coefficients"]["data"]
+    camera_info_msg.P = np.zeros(12)
+    camera_info_msg.P[0:3] = camera_info_msg.K[0:3]
+    camera_info_msg.P[4:7] = camera_info_msg.K[3:6]
+    camera_info_msg.P[8:11] = camera_info_msg.K[6:9]
     camera_info_msg.distortion_model = calib_data["distortion_model"]
     topic = calib_data["topic"]
     return camera_info_msg, topic
