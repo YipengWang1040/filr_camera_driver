@@ -4,7 +4,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 import rospy
 
-DEBUG = True
+DEBUG = False
 
 RED =    '\x1b[1;31m'
 YELLOW = '\x1b[1;33m'
