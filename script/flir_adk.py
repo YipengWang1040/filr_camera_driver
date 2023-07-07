@@ -3,8 +3,10 @@ import argparse
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 import rospy
+import time
 
 DEBUG = False
+SKIP_FRAME = 5
 
 RED =    '\x1b[1;31m'
 YELLOW = '\x1b[1;33m'
@@ -33,6 +35,7 @@ def retrive_image(cap):
             print(YELLOW+'Unable to retrieve image!'+WHITE)
         return None
 
+
 def main():
     parser = argparse.ArgumentParser(
                 prog='flir_adk_driver',
@@ -50,16 +53,18 @@ def main():
     print(GREEN+'Camera initialized!'+WHITE)
 
     rospy.init_node('flir_adk_driver')
-    pub_image = rospy.Publisher('/adk/image_thermal', Image, queue_size=10)
+    pub_image = rospy.Publisher('/flir/adk/image_thermal', Image, queue_size=10)
     bridge = CvBridge()
     
     # drop initial frames
     prev_time_stamp_ms = 0
+    skip = 0
     for i in range(100):
         prev_time_stamp_ms = wait_for_image(cap)
         retrive_image(cap)
 
-    print(cap.get(cv2.CAP_PROP_FPS))
+    #print("Deviec FPS: {}".format(cap.get(cv2.CAP_PROP_FPS)))
+    #print("Skipping {} frames, actual FPS: {}".format(cap.get(cv2.CAP_PROP_FPS), cap.get(cv2.CAP_PROP_FPS)/(1+SKIP_FRAME)))
     print(GREEN+'Start publishing......'+WHITE)
     while(not rospy.is_shutdown()):
         time_stamp_ms = wait_for_image(cap)
@@ -72,9 +77,13 @@ def main():
                 print(YELLOW + "Skipped empty image at {}".format(time_stamp_ms)+WHITE)
             continue
         
-        image_msg = bridge.cv2_to_imgmsg(image, encoding='mono8')
-        image_msg.header.stamp = rospy.Time.from_seconds(time_stamp_ms/1000)
-        pub_image.publish(image_msg)
+        if(skip==SKIP_FRAME):
+            image_msg = bridge.cv2_to_imgmsg(image, encoding='mono8')
+            image_msg.header.stamp = rospy.Time.from_seconds(time_stamp_ms/1000)
+            pub_image.publish(image_msg)
+            skip=0
+        else:
+            skip+=1
 
     finalize_adk(cap)
 
