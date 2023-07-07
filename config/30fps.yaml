@@ -1,0 +1,28 @@
+%YAML 1.2
+
+# camera settings
+
+## int
+mode: 1    # 0:none, 1:BGR888, 2:BayerRG8, 3:Grayscale 
+bayer_as_rgb: 0
+
+## float
+exposure_target_value: 50.0
+
+## in micro seconds, int
+exposure_time_min: 100
+exposure_time_max: 19000
+
+## in DB, float
+exposure_gain_min: 0.0
+exposure_gain_max: 15.0
+
+## int
+fps: 30
+
+# other settings
+
+ros_topic_color: "/flir/blackfly/cam%/image_color"
+ros_topic_raw: "/flir/blackfly/cam%/image_raw"   
+additional_topic: "/flir/blackfly/additional"
+skip: 0
