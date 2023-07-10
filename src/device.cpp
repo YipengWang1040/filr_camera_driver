@@ -108,22 +108,27 @@ bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, 
                 }
             }
             else{
-                // use green as gray and interpolate other pixels
+                // // use green as gray and interpolate other pixels
 
-                // branch elimination trick: i%2+j%2-> 0: r, 1: g, 2: b
-                // is_green: (i%2+j%2)%2
+                // // branch elimination trick: i%2+j%2-> 0: r, 1: g, 2: b
+                // // is_green: (i%2+j%2)%2
                 
+                // image_raw=cv::Mat(height,width,CV_8UC1);
+                // uchar* dst_data=image_raw.data;
+                // for(int i=1;i<height-1;++i){
+                //     for(int j=1;j<width-1;++j){
+                //         int is_green=(i%2+j%2)%2;
+                //         int neighbors[]={raw_data[width*i+j-1],raw_data[width*i+j+1],raw_data[width*(i-1)+j],raw_data[width*(i+1)+j]};
+                //         int avg_neighbors=(std::accumulate(neighbors, neighbors+4, 0))/4;
+                //         std::sort(neighbors,neighbors+4,[avg_neighbors](auto&& a, auto&& b){return abs(avg_neighbors-a)<abs(avg_neighbors-b);});
+                //         dst_data[width*i+j]=raw_data[width*i+j]*is_green+(neighbors[0]+neighbors[1])/2*(1-is_green);
+                //     }
+                // }
+
+                // just do nothing
                 image_raw=cv::Mat(height,width,CV_8UC1);
                 uchar* dst_data=image_raw.data;
-                for(int i=1;i<height-1;++i){
-                    for(int j=1;j<width-1;++j){
-                        int is_green=(i%2+j%2)%2;
-                        int neighbors[]={raw_data[width*i+j-1],raw_data[width*i+j+1],raw_data[width*(i-1)+j],raw_data[width*(i+1)+j]};
-                        int avg_neighbors=(std::accumulate(neighbors, neighbors+4, 0))/4;
-                        std::sort(neighbors,neighbors+4,[avg_neighbors](auto&& a, auto&& b){return abs(avg_neighbors-a)<abs(avg_neighbors-b);});
-                        dst_data[width*i+j]=raw_data[width*i+j]*is_green+(neighbors[0]+neighbors[1])/2*(1-is_green);
-                    }
-                }
+                memcpy(dst_data, raw_data, width*height);
             }
         }
 
