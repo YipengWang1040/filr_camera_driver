@@ -3,7 +3,7 @@
 # camera settings
 
 ## int
-mode: 1    # 0:none, 1:BGR888, 2:BayerRG8, 3:Grayscale 
+mode: 2    # 0:none, 1:BGR888, 2:raw, 3:both 
 bayer_as_rgb: 0
 
 ## float
