@@ -134,6 +134,7 @@ int main(int argc, char* argv[]){
     for(auto&& camera:camera_list){
         pubs_image_raw[idx]=(nh.advertise<sensor_msgs::Image>(strfmt(topic_raw.c_str(),idx),10));
         cout<<strfmt(topic_raw.c_str(),idx)<<endl;
+        camera.calibrate_timestamp(100);
         pubs_image_rgb[idx]=(nh.advertise<sensor_msgs::Image>(strfmt(topic_rgb.c_str(),idx),10));
         working_threads[idx]=(thread{&run_cam,std::ref(camera),std::ref(pubs_image_raw[idx]),std::ref(pubs_image_rgb[idx]),std::ref(pub_addition)});
         idx+=1;

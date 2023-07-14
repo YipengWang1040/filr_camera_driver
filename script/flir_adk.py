@@ -59,15 +59,20 @@ def main():
     # drop initial frames
     prev_time_stamp_ms = 0
     skip = 0
-    for i in range(100):
+    for i in range(300):
         prev_time_stamp_ms = wait_for_image(cap)
         retrive_image(cap)
 
     #print("Deviec FPS: {}".format(cap.get(cv2.CAP_PROP_FPS)))
     #print("Skipping {} frames, actual FPS: {}".format(cap.get(cv2.CAP_PROP_FPS), cap.get(cv2.CAP_PROP_FPS)/(1+SKIP_FRAME)))
     print(GREEN+'Start publishing......'+WHITE)
+    delta = -1
     while(not rospy.is_shutdown()):
         time_stamp_ms = wait_for_image(cap)
+        # timestamp correction
+        if(delta<0):
+            delta = time.time()*1000 - time_stamp_ms
+        time_stamp_ms = delta + time_stamp_ms
         if(DEBUG):
             print(YELLOW + "delta_t: {}".format(time_stamp_ms-prev_time_stamp_ms)+WHITE)
         prev_time_stamp_ms = time_stamp_ms

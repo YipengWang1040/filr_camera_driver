@@ -12,7 +12,7 @@
 class Device{
 
 public:
-    Device(Spinnaker::CameraPtr _camera):use_raw_image(false), use_rgb_image(true), bayer2rgb(true){
+    Device(Spinnaker::CameraPtr _camera):timestamp_delta(0),use_raw_image(false), use_rgb_image(true), bayer2rgb(true){
         camera=_camera;
         image_processor.SetColorProcessing(Spinnaker::ColorProcessingAlgorithm::HQ_LINEAR);
     }
@@ -30,8 +30,15 @@ public:
     // destroy the underlying camera object
     void clear();
 
-    bool is_valid(){
+    bool is_valid() const{
         return camera.IsValid();
+    }
+
+    std::string ID() const{
+        if(is_valid())
+            return camera->DeviceID.ToString().c_str();
+        else
+            return "-1";
     }
 
     bool configure(const configure::config& config);
@@ -45,9 +52,13 @@ public:
 
     bool photometric_calibration(const std::string&);
 
+    void calibrate_timestamp(size_t samples);
+
 private:
     Spinnaker::CameraPtr camera;
     Spinnaker::ImageProcessor image_processor;
+
+    int64_t timestamp_delta;
 
     bool use_raw_image;
     bool use_rgb_image;
