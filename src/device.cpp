@@ -54,8 +54,7 @@ void Device::clear(){
     }
 }
 
-bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, double& exposure_time, double& gain){
-    thread_local int64_t delta=-1;
+bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp_device, std::size_t& time_stamp_system, double& exposure_time, double& gain){
     if(!is_valid())
         return false;
 
@@ -65,16 +64,12 @@ bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, 
 
         INodeMap& ptr=camera->GetNodeMap();
         ImagePtr grab_image = camera->GetNextImage(500); // note that timeout is in milliseconds
+        time_stamp_system = ros::Time::now().toNSec();
         if(grab_image->IsIncomplete()){
             ROS_FATAL("incomplete image recieved!");
             return false;
         }
-        time_stamp=grab_image->GetTimeStamp();
-        // roughly sychronize the timestamp form the camera to the host.
-        if(delta<0){
-            delta=time(nullptr)*1000000000-int64_t(time_stamp);
-        }
-        time_stamp=delta+time_stamp;
+        time_stamp_device=grab_image->GetTimeStamp();
 
         // read gain and exposure time for this specific frame
         {

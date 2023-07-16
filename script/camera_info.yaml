@@ -1,4 +1,4 @@
-topic: "/blackfly/cam0/camera_info"
+topic: "/flir/blackfly/cam0/camera_info"
 image_width: 1440
 image_height: 1080
 distortion_model: equidistant  # plumb_bob or equidistant

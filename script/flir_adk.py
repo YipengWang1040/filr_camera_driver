@@ -1,7 +1,7 @@
 import cv2
 import argparse
 from cv_bridge import CvBridge
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, TimeReference
 import rospy
 import time
 
@@ -54,20 +54,27 @@ def main():
 
     rospy.init_node('flir_adk_driver')
     pub_image = rospy.Publisher('/flir/adk/image_thermal', Image, queue_size=10)
+    pub_time = rospy.Publisher('/flir/adk/time_reference', TimeReference, queue_size=10)
     bridge = CvBridge()
     
-    # drop initial frames
+    # drop initial frames and calibrate timestamp difference
     prev_time_stamp_ms = 0
-    skip = 0
-    for i in range(100):
+    samples = 100
+    delta = 0
+    for i in range(samples):
         prev_time_stamp_ms = wait_for_image(cap)
+        delta += time.time()*1000 - prev_time_stamp_ms
         retrive_image(cap)
+    delta /= samples
 
-    #print("Deviec FPS: {}".format(cap.get(cv2.CAP_PROP_FPS)))
-    #print("Skipping {} frames, actual FPS: {}".format(cap.get(cv2.CAP_PROP_FPS), cap.get(cv2.CAP_PROP_FPS)/(1+SKIP_FRAME)))
+    skip = 0
+    print("Deviec FPS: {}".format(60))
+    print("Skipping {} frames, actual FPS: {}".format(SKIP_FRAME, 60/(1+SKIP_FRAME)))
     print(GREEN+'Start publishing......'+WHITE)
     while(not rospy.is_shutdown()):
         time_stamp_ms = wait_for_image(cap)
+        time_stamp_system = rospy.Time.now()
+
         if(DEBUG):
             print(YELLOW + "delta_t: {}".format(time_stamp_ms-prev_time_stamp_ms)+WHITE)
         prev_time_stamp_ms = time_stamp_ms
@@ -79,8 +86,15 @@ def main():
         
         if(skip==SKIP_FRAME):
             image_msg = bridge.cv2_to_imgmsg(image, encoding='mono8')
-            image_msg.header.stamp = rospy.Time.from_seconds(time_stamp_ms/1000)
+            image_msg.header.stamp = time_stamp_system
+            image_msg.header.frame_id = "flir/adk/image_thermal"
             pub_image.publish(image_msg)
+
+            time_reference = TimeReference()
+            time_reference.header = image_msg.header
+            time_reference.time_ref = rospy.Time.from_seconds(time_stamp_ms/1000)
+            time_reference.source = "v4l_driver"
+            pub_time.publish(time_reference)
             skip=0
         else:
             skip+=1

@@ -24,5 +24,7 @@ fps: 10
 
 ros_topic_color: "/flir/blackfly/cam%/image_color"
 ros_topic_raw: "/flir/blackfly/cam%/image_raw" 
+ros_topic_time: "/flir/blackfly/cam%/time_reference" 
 additional_topic: "/flir/blackfly/additional"
 skip: 0
+
