@@ -54,6 +54,7 @@ void Device::clear(){
     }
 }
 
+<<<<<<< HEAD
 void Device::calibrate_timestamp(size_t samples){
     ROS_INFO("Calibrationg timestamp offset for camera %s using %ld samples...", ID().c_str(), samples);
     int64_t stamps_device=0;
@@ -67,6 +68,9 @@ void Device::calibrate_timestamp(size_t samples){
 }
 
 bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, double& exposure_time, double& gain){
+=======
+bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp_device, std::size_t& time_stamp_system, double& exposure_time, double& gain){
+>>>>>>> time_reference
     if(!is_valid())
         return false;
 
@@ -76,16 +80,21 @@ bool Device::grab(cv::Mat &image_raw, cv::Mat &image_color, size_t &time_stamp, 
 
         INodeMap& ptr=camera->GetNodeMap();
         ImagePtr grab_image = camera->GetNextImage(500); // note that timeout is in milliseconds
+        time_stamp_system = ros::Time::now().toNSec();
         if(grab_image->IsIncomplete()){
             ROS_FATAL("incomplete image recieved!");
             return false;
         }
+<<<<<<< HEAD
         time_stamp=grab_image->GetTimeStamp();
         // roughly sychronize the timestamp form the camera to the host.
         // if(delta<0){
         //     delta=time(nullptr)*1000000000-int64_t(time_stamp);
         // }
         time_stamp=timestamp_delta+time_stamp;
+=======
+        time_stamp_device=grab_image->GetTimeStamp();
+>>>>>>> time_reference
 
         // read gain and exposure time for this specific frame
         {

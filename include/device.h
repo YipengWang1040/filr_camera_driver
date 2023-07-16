@@ -45,7 +45,7 @@ public:
 
     // time_stamp is in nanoseconds
     // time_stamp represents the running time after camera was powered on
-    bool grab(cv::Mat& image_raw, cv::Mat& image_color, size_t& time_stamp, double& exposure_time, double& gain);
+    bool grab(cv::Mat& image_raw, cv::Mat& image_color, size_t& time_stamp_device, std::size_t& time_stamp_system, double& exposure_time, double& gain);
 
     // default parameters
     bool default_initialization();
